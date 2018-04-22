@@ -1,0 +1,54 @@
+<html ng-app="POS">
+  <head>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <meta content="yes" name="mobile-web-app-capable"/>
+    <title>
+      POS
+    </title>
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic|Inconsolata" rel="stylesheet" type="text/css"/>
+    <link href="http://fonts.googleapis.com/css?family=Lora" rel="stylesheet" type="text/css"/>
+    <link href="/icono/dist/icono.min.css" rel="stylesheet"/>
+    <link href="/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/main.css" rel="stylesheet"/>
+    <link href="odometer/themes/odometer-theme-minimal.css" rel="stylesheet"/>
+  </head>
+  <body ng-controller="posController" class="container">
+
+    <div ng-view></div>
+
+    <script src="/jquery/dist/jquery.min.js"></script>
+    <script src="/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/angular/angular.min.js"></script>
+    <script src="/socket.io-client/socket.io.js"></script>
+    <script src="/angular-route/angular-route.min.js"></script>
+    <script src="/angular-animate/angular-animate.min.js"></script>
+    <script src="/lodash/lodash.min.js"></script>
+    <script src="/angular-upload/angular-upload.min.js"></script>
+    <script src="/odometer/odometer.min.js"></script>
+    <script src="/angular-odometer-js/dist/angular-odometer.min.js"></script>
+
+    <!-- Module -->
+    <script src="/js/app.js"></script>
+
+    <!-- Controllers -->
+    <script src="/js/controllers/pos.js"></script>
+    
+    <!-- Services -->
+    <script src="/js/services/app.js"></script>
+    <script src="/js/services/inventory.js"></script>
+    <script src="/js/services/transaction.js"></script>
+
+    <script src="/js/routes.js"></script>
+    <script src="/js/directives.js"></script>
+    
+    <script>
+      window.onload = function () {
+        var barcode = document.getElementById('barcode');
+        if (barcode) {
+          barcode.focus();
+          barcode.select();
+        }
+      };
+    </script>
+  </body>
+</html>

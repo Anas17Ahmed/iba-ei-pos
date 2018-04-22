@@ -7,7 +7,7 @@ module.exports = app;
 
 // print data of server
 app.get('/', function (req, res) {
-	res.send('Hunts Point POS.');
+	res.send('POS.');
 });
 
 app.use('/inventory', require('./inventory'));
