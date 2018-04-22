@@ -6,6 +6,3 @@ node_modules/*
 
 bower_components
 bower_components/*
-
-server/databases/inventory.db
-server/databases/transactions.db
