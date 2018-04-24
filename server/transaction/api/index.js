@@ -10,5 +10,4 @@ app.get('/', function (req, res) {
 	res.send('POS.');
 });
 
-app.use('/inventory', require('./inventory'));
 app.use('/transactions', require('./transactions'));

@@ -1,19 +1,47 @@
-var app 	= require('express')()
-var server 	= require('http').Server(app)
-var bodyParser = require('body-parser')
-var Datastore = require('nedb')
+const app 	= require('express')();
+const server 	= require('http').Server(app);
+const bodyParser = require('body-parser');
+const Datastore = require('nedb');
+const path = require('path');
 
-var Inventory = require('./inventory')
+const AWSMS = require('./../../AWSMS');
+const aws = new AWSMS();
+const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions';
+const RECIEVE_DELAY = 5;
 
 app.use(bodyParser.json())
 
 module.exports = app
 
 // Database stuff
-var Transactions = new Datastore({ 
-	filename: './server/databases/transactions.db', 
+const Transactions = new Datastore({ 
+	filename: path.resolve( __dirname + '/../databases/transactions.db.json' ), 
 	autoload: true 
 })
+
+receiveTransaction();
+function receiveTransaction() {
+  return aws.receiveMessage( transactionsQ , RECIEVE_DELAY ).then( messages => {
+    
+    for ( let i = 0; i < messages.length; i++ ) {
+      
+      aws.deleteMessage( transactionsQ, messages[i].ReceiptHandle );
+    	
+    	if ( messages[i].Body.header == 'transactions' ) {
+    		Transactions.insert( messages[i].Body.body, function (err, transaction) {	
+					if (err) 
+						console.log('sqs transactions error', err);
+					else 
+						console.log('sqs transaction', transaction);
+				});
+    	}
+    }
+    
+    console.log('receiveMessage inventory', messages);
+    
+    return receiveTransaction();
+  });
+}
 
 app.get('/', function (req, res) {
 	res.send('Transactions API')
