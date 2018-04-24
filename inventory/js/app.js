@@ -10,14 +10,7 @@ var app = angular.module('Inventory', [
 ////////////////// Socket.io ////////////////// //
 //////////////////////////////////////////////////
 
-// var serverAddress;
-// console.log('serverAddress', window.location.host)
-// if (window.location.host === 'pos.dev')
-//   serverAddress = 'http://pos.dev'
-// else
-//   serverAddress = 'http://pos.afaqtariq.com:8080';
-
-var socket = io.connect(window.location.host);
+// var socket = io.connect(window.location.hostname);
 
 
 /////////////////////////////////////////////////////

@@ -9,15 +9,7 @@ var app = angular.module('POS', [
 ///////////////////////////////////////////////////
 ////////////////// Socket.io ////////////////// //
 //////////////////////////////////////////////////
-
-// var serverAddress;
-// console.log('serverAddress', window.location.host)
-// if (window.location.host === 'pos.dev')
-//   serverAddress = 'http://pos.dev'
-// else
-//   serverAddress = 'http://pos.afaqtariq.com:8080';
-
-var socket = io.connect(window.location.host);
+window.socket = io.connect(window.location.hostname);
 
 
 /////////////////////////////////////////////////////
