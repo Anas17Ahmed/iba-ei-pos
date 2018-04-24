@@ -10,7 +10,7 @@ module.exports = app
 
 // Database stuff
 const Transactions = new Datastore({ 
-	filename: path.resolve( __dirname + '/../databases/transactions.db.json' ), 
+	filename: path.resolve( __dirname + '/../../transaction/databases/transactions.db.json' ), 
 	autoload: true 
 })
 
