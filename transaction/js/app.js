@@ -17,7 +17,7 @@ var app = angular.module('Transaction', [
 // else
 //   serverAddress = 'http://pos.afaqtariq.com:8080';
 
-var socket = io.connect(window.location.host);
+var socket = io.connect(window.location.hostname);
 
 
 /////////////////////////////////////////////////////
