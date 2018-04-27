@@ -7,7 +7,7 @@ const path = require('path');
 
 const AWSMS = require('./../../AWSMS');
 const aws = new AWSMS();
-const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory';
+const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory.fifo';
 const topic = 'arn:aws:sns:us-east-1:942443975652:POS';
 
 app.use(bodyParser.json())

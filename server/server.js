@@ -9,36 +9,38 @@ const express = require('express'),
 const aws = new AWSMS();
 const RECIEVE_DELAY = 5;
 
-const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions';
-const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory';
-const posQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/pos';
+
+const invalidMessage = 'https://sqs.us-east-1.amazonaws.com/942443975652/invalid-message.fifo';
+const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions.fifo';
+const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory.fifo';
+const posQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/pos.fifo';
+const deadQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/dead-letter.fifo';
 const topic = 'arn:aws:sns:us-east-1:942443975652:POS';
 
-// receiveInventory();
-// receiveTransaction();
+receiveDead();
+receiveInvalid();
 receivePOS();
 
+function receiveDead() {
+  return aws.receiveMessage( deadQ , RECIEVE_DELAY).then( messages => {
+    for ( let i = 0; i < messages.length; i++ ) {
+      aws.deleteMessage( inventoryQ, messages[i].ReceiptHandle );
+    }
+    console.log('receiveMessage deadQs', messages);
+    return receiveInventory();
+  });
+}
 
+function receiveInvalid() {
+  return aws.receiveMessage( invalidMessage , RECIEVE_DELAY).then( messages => {
+    for ( let i = 0; i < messages.length; i++ ) {
+      aws.deleteMessage( inventoryQ, messages[i].ReceiptHandle );
+    }
+    console.log('invalidMessage', messages);
+    return receiveInventory();
+  });
+}
 
-// function receiveInventory() {
-//   return aws.receiveMessage( inventoryQ , RECIEVE_DELAY).then( messages => {
-//     for ( let i = 0; i < messages.length; i++ ) {
-//       aws.deleteMessage( inventoryQ, messages[i].ReceiptHandle );
-//     }
-//     console.log('receiveMessage inventory', messages);
-//     return receiveInventory();
-//   });
-// }
-
-// function receiveTransaction() {
-//   return aws.receiveMessage( transactionsQ, RECIEVE_DELAY ).then( messages => {
-//     for ( let i = 0; i < messages.length; i++ ) {
-//       aws.deleteMessage( transactionsQ, messages[i].ReceiptHandle );
-//     }
-//     console.log('receiveMessage transactions', messages);
-//     return receiveTransaction();
-//   });
-// }
 
 function receivePOS() {
   return aws.receiveMessage( posQ, RECIEVE_DELAY ).then( messages => {

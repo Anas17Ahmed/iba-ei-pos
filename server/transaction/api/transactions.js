@@ -6,7 +6,7 @@ const path = require('path');
 
 const AWSMS = require('./../../AWSMS');
 const aws = new AWSMS();
-const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions';
+const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions.fifo';
 const RECIEVE_DELAY = 5;
 
 app.use(bodyParser.json())
@@ -34,6 +34,11 @@ function receiveTransaction() {
 					else 
 						console.log('sqs transaction', transaction);
 				});
+    	} else {
+    		aws.sns.publish({ 
+		        TopicArn: invalidQ,
+		        Message: messages[i].Body
+		      }).promise();
     	}
     }
     

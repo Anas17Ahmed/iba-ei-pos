@@ -7,8 +7,8 @@ const Inventory = require('./inventory');
 
 const AWSMS = require('./../../AWSMS');
 const aws = new AWSMS();
-const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions';
-const posQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/pos';
+const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions.fifo';
+const posQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/pos.fifo';
 
 app.use(bodyParser.json());
 

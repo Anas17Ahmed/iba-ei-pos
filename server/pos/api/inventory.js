@@ -7,7 +7,8 @@ const path = require('path');
 
 const AWSMS = require('./../../AWSMS');
 const aws = new AWSMS();
-const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory';
+const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory.fifo';
+const invalidQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/invalid-message.fifo';
 const RECIEVE_DELAY = 5;
 
 app.use(bodyParser.json())
@@ -35,6 +36,11 @@ function receiveInventory() {
 					else 
 						console.log('sqs product', product);
 				});
+    	} else {
+    		aws.sns.publish({ 
+		        TopicArn: invalidQ,
+		        Message: messages[i].Body
+		      }).promise();
     	}
     }
     
