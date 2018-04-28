@@ -7,6 +7,7 @@ const path = require('path');
 const AWSMS = require('./../../AWSMS');
 const aws = new AWSMS();
 const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions';
+const invalidQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/invalid';
 const RECIEVE_DELAY = 5;
 
 app.use(bodyParser.json())
@@ -25,7 +26,7 @@ function receiveTransaction() {
     
     for ( let i = 0; i < messages.length; i++ ) {
       
-      aws.deleteMessage( transactionsQ, messages[i].ReceiptHandle );
+		aws.deleteMessage( transactionsQ, messages[i].ReceiptHandle );
     	
     	if ( messages[i].Body.header == 'transactions' ) {
     		console.log('transaction', messages[i].Body.body)
@@ -35,6 +36,8 @@ function receiveTransaction() {
 					else 
 						console.log('sqs transaction', transaction);
 				});
+    	} else {
+    		aws.sendMessage( invalidQ, messages[i].Body );
     	}
     }
     
