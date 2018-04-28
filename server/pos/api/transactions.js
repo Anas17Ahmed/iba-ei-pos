@@ -10,6 +10,10 @@ const aws = new AWSMS();
 const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions';
 const posQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/pos';
 
+const deadQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/dead';
+const topic = 'arn:aws:sns:us-east-1:942443975652:POS';
+const LARGE_DELAY = 30;
+
 app.use(bodyParser.json());
 
 module.exports = app;
@@ -118,6 +122,19 @@ app.post('/new', function (req, res) {
 			aws.sendMessage( posQ/*transactionsQ*/, {
 				'header': 'transactions',
 				'body': transaction
+			})
+			.catch( err => { console.log('publish transaction error', err) })
+			.then( result => {
+				console.log( 'transaction published', result );
+				setTimeout( function AfterTimeout() {
+					return aws.receiveMessage( transactionsQ , 0).then( messages => {
+						console.log( 'inventory messages', messages );
+						for (var i = 0; i < messages.length; i++) {
+							if ( messages[i].Attributes.ApproximateReceiveCount <= 1 ) 
+								aws.sendMessage( deadQ, messages[i].Body );
+						}
+				  });
+				}, LARGE_DELAY * 1000);
 			});
 		} 
 	})

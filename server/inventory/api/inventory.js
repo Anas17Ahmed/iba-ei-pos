@@ -8,7 +8,9 @@ const path = require('path');
 const AWSMS = require('./../../AWSMS');
 const aws = new AWSMS();
 const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory';
+const deadQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/dead';
 const topic = 'arn:aws:sns:us-east-1:942443975652:POS';
+const LARGE_DELAY = 30;
 
 app.use(bodyParser.json())
 
@@ -73,7 +75,20 @@ app.post('/product', function (req, res) {
 			      StringValue: 'inventory'
 			    }
 			  }
-			}).promise();
+			}).promise()
+			.catch( err => { console.log('publish inventory error', err) })
+			.then( result => {
+				console.log( 'inventory published', result );
+				setTimeout( function AfterTimeout() {
+					return aws.receiveMessage( inventoryQ , 0).then( messages => {
+						console.log( 'inventory messages', messages );
+						for (var i = 0; i < messages.length; i++) {
+							if ( messages[i].Attributes.ApproximateReceiveCount <= 1 ) 
+								aws.sendMessage( deadQ, messages[i].Body );
+						}
+				  });
+				}, LARGE_DELAY * 1000);
+			});
 		}
 	});
 });

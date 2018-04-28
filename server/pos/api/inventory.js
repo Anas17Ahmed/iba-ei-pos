@@ -8,6 +8,7 @@ const path = require('path');
 const AWSMS = require('./../../AWSMS');
 const aws = new AWSMS();
 const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory';
+const invalidQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/invalid';
 const RECIEVE_DELAY = 5;
 
 app.use(bodyParser.json())
@@ -25,16 +26,20 @@ function receiveInventory() {
   return aws.receiveMessage( inventoryQ , RECIEVE_DELAY).then( messages => {
     
     for ( let i = 0; i < messages.length; i++ ) {
-      
-      aws.deleteMessage( inventoryQ, messages[i].ReceiptHandle );
-    	
-    	if ( messages[i].Body.header == 'inventory' ) {
-    		inventoryDB.insert( messages[i].Body.body , function (err, product) {
-					if (err) 
-						console.log('sqs product error', err);
-					else 
-						console.log('sqs product', product);
-				});
+    	let msg = JSON.parse( messages[i].Body.Message ); 
+    	if ( msg.header == 'inventory' ) {
+    		console.log('messages[i].Attributes.ApproximateReceiveCount', messages[i].Attributes.ApproximateReceiveCount);
+    		if ( messages[i].Attributes.ApproximateReceiveCount <= 1 ) {
+    			inventoryDB.insert( msg.body , function (err, product) {
+						if (err) 
+							console.log('sqs product error', err);
+						else 
+							console.log('sqs product', product);
+					});
+    		}
+    	} else {
+    		aws.deleteMessage( inventoryQ, messages[i].ReceiptHandle );
+    		aws.sendMessage( invalidQ, messages[i].Body );
     	}
     }
     
@@ -122,9 +127,8 @@ app.decrementInventory = function (products) {
 			}
 
 			else {
-				var updatedQuantity = parseInt(product.quantity_on_hand) - parseInt(transactionProduct.quantity)
-				
-				inventoryDB.update({ _id: product._id }, { $set: { quantity_on_hand: updatedQuantity } }, {}, callback)
+				product.quantity_on_hand = parseInt(product.quantity_on_hand) - parseInt(transactionProduct.quantity)
+				inventoryDB.update({ _id: product._id }, product, {}, callback)
 			}
 
 		});

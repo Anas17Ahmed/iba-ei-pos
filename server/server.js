@@ -8,27 +8,36 @@ const express = require('express'),
 
 const aws = new AWSMS();
 const RECIEVE_DELAY = 5;
+const LARGE_DELAY = 60;
+const MEDIUM_DELAY = 20;
 
-const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions';
-const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory';
-const posQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/pos';
 const topic = 'arn:aws:sns:us-east-1:942443975652:POS';
 
-// receiveInventory();
-// receiveTransaction();
+const deadQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/dead';
+const invalidQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/invalid';
+
+const posQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/pos';
+const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory';
+const transactionsQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/transactions';
+
+// receiveInvalid();
+// receiveDead();
 receivePOS();
 
 
+function receiveInvalid() {
+  return aws.receiveMessage( invalidQ , MEDIUM_DELAY).then( messages => {
+    console.log('invalid messages', messages);
+    return receiveInvalid();
+  });
+}
 
-// function receiveInventory() {
-//   return aws.receiveMessage( inventoryQ , RECIEVE_DELAY).then( messages => {
-//     for ( let i = 0; i < messages.length; i++ ) {
-//       aws.deleteMessage( inventoryQ, messages[i].ReceiptHandle );
-//     }
-//     console.log('receiveMessage inventory', messages);
-//     return receiveInventory();
-//   });
-// }
+function receiveDead() {
+  return aws.receiveMessage( deadQ , MEDIUM_DELAY).then( messages => {
+    console.log('Dead letter messages', messages);
+    return receiveDead();
+  });
+}
 
 // function receiveTransaction() {
 //   return aws.receiveMessage( transactionsQ, RECIEVE_DELAY ).then( messages => {
@@ -56,11 +65,11 @@ function receivePOS() {
         aws.sendMessage( transactionsQ, messages[i].Body );
 
       } else {
-
+        aws.sendMessage( invalidQ, messages[i].Body );        
         console.log( 'message with invalid header', messages[i] );
       }
     }
-    console.log('receiveMessage pos', messages );
+    console.log('posQ messages', messages );
     return receivePOS();
   });
 }

@@ -1,10 +1,5 @@
 {"barcode":"111-004","name":"Galaxy Note 8","price":100000,"quantity_on_hand":40,"mobile":true,"_id":"AOXFQu2Gx1u9G7FG"}
-{"barcode":"111-006","name":"Huawei P8","price":12000,"quantity_on_hand":5,"mobile":true,"_id":"JTWiEmNnG05Q8kOI"}
 {"barcode":"111-002","name":"Galaxy S7","price":30000,"quantity_on_hand":149,"mobile":true,"_id":"OkNcEvuGNg4CcQD0"}
+{"barcode":"111-010","name":"Galaxy S6","price":11000,"quantity_on_hand":5,"mobile":true,"_id":"SDaby4BSyu34LzqT"}
 {"barcode":"111-005","name":"Galaxy Note 5","price":25000,"quantity_on_hand":25,"mobile":true,"_id":"UupP6ENJtP5QtIbK"}
-{"barcode":"111-009","name":"Huawei P9 Lite","price":18000,"quantity_on_hand":8,"mobile":true,"_id":"bHlopOS6D4m9AX6a"}
-{"barcode":"111-08","name":"Huawei P9","price":18000,"quantity_on_hand":8,"mobile":true,"_id":"fJK6ogLRn61pxmsH"}
-{"barcode":"111-001","name":"Galaxy S6","price":20000,"_id":"jweUlg3rYnFHbQvh","quantity_on_hand":99,"mobile":true}
-{"barcode":"111-003","name":"Galaxy S8","price":60000,"quantity_on_hand":59,"mobile":true,"_id":"m5v9A0jc3qpBtodC"}
-{"barcode":"111-007","name":"Huawei P8 Lite","price":10000,"quantity_on_hand":5,"mobile":true,"_id":"oS3mf4uwIJW2TrXq"}
-{"barcode":"111-08","name":"Huawei P9","price":18000,"quantity_on_hand":3,"mobile":true,"_id":"fJK6ogLRn61pxmsH"}
+{"barcode":"111-005","name":"Galaxy Note 5","price":25000,"quantity_on_hand":24,"mobile":true,"_id":"UupP6ENJtP5QtIbK"}

@@ -28,6 +28,7 @@ function receiveTransaction() {
       aws.deleteMessage( transactionsQ, messages[i].ReceiptHandle );
     	
     	if ( messages[i].Body.header == 'transactions' ) {
+    		console.log('transaction', messages[i].Body.body)
     		Transactions.insert( messages[i].Body.body, function (err, transaction) {	
 					if (err) 
 						console.log('sqs transactions error', err);
