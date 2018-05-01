@@ -32,25 +32,25 @@ $ bower install
 To start the messaging systen, run:
 
 ```bash
-node server/server.js
+node server/server.js //localhost:80
 ```
 
 To start the inventory app, run:
 
 ```bash
-node server/inventory
+node server/inventory //localhost:81
 ```
 
 To start the order app, run:
 
 ```bash
-node server/pos
+node server/pos //localhost:82
 ```
 
 To start the transaction app, run:
 
 ```bash
-node server/transaction
+node server/transaction //localhost:83
 ```
 
 This will install all dependencies required to run the node app.
@@ -59,10 +59,24 @@ This will install all dependencies required to run the node app.
 
 ## Planned Features
 - [ ] pos integration
-- [ ] scan-search on inventory page
+- [ ] search on inventory page
 - [ ] inventory increment page
 - [ ] account for multiple cash registers
 - [ ] clean & beautiful interface
+
+
+## Integration Features Covered
+### Messaging Systems
+- Message Channel ( Inventory, Transaction )
+- Message Pipes ( AWS Topic )
+- Content Based Routing (Common Messaging queue)
+- Message Endpoint (Topic, Inventory, Transaction and common messaging queue)
+
+### Messaging Channels
+- Point-to-Point Channel
+- Publish-Subscribe Channel
+- Invalid Message Channel
+- Dead Letter Channel
 
 # Screenshots
 
