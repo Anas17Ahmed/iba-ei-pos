@@ -1,18 +1,53 @@
-var app 	= require('express')()
-var server 	= require('http').Server(app)
-var bodyParser = require('body-parser')
-var Datastore = require('nedb')
-var async = require('async')
+const app	= require('express')();
+const server = require('http').Server(app);
+const bodyParser = require('body-parser');
+const Datastore = require('nedb');
+const async = require('async');
+const path = require('path');
+
+const AWSMS = require('./../../AWSMS');
+const aws = new AWSMS();
+const inventoryQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/inventory';
+const invalidQ = 'https://sqs.us-east-1.amazonaws.com/942443975652/invalid';
+const RECIEVE_DELAY = 5;
 
 app.use(bodyParser.json())
 
 module.exports = app
 
 // Database stuff
-var inventoryDB = new Datastore({ 
-	filename: './server/databases/inventory.db', 
+const inventoryDB = new Datastore({ 
+	filename: path.resolve( __dirname + '/../databases/inventory.db.json' ), 
 	autoload: true 
 })
+
+receiveInventory();
+function receiveInventory() {
+  return aws.receiveMessage( inventoryQ , RECIEVE_DELAY).then( messages => {
+    
+    for ( let i = 0; i < messages.length; i++ ) {
+    	let msg = JSON.parse( messages[i].Body.Message ); 
+    	if ( msg.header == 'inventory' ) {
+    		console.log('messages[i].Attributes.ApproximateReceiveCount', messages[i].Attributes.ApproximateReceiveCount);
+    		if ( messages[i].Attributes.ApproximateReceiveCount <= 1 ) {
+    			inventoryDB.insert( msg.body , function (err, product) {
+						if (err) 
+							console.log('sqs product error', err);
+						else 
+							console.log('sqs product', product);
+					});
+    		}
+    	} else {
+    		aws.deleteMessage( inventoryQ, messages[i].ReceiptHandle );
+    		aws.sendMessage( invalidQ, messages[i].Body );
+    	}
+    }
+    
+    console.log('receiveMessage inventory', messages);
+    
+    return receiveInventory();
+  });
+}
 
 // GET inventory
 app.get('/', function (req, res) {
@@ -92,9 +127,8 @@ app.decrementInventory = function (products) {
 			}
 
 			else {
-				var updatedQuantity = parseInt(product.quantity_on_hand) - parseInt(transactionProduct.quantity)
-				
-				inventoryDB.update({ _id: product._id }, { $set: { quantity_on_hand: updatedQuantity } }, {}, callback)
+				product.quantity_on_hand = parseInt(product.quantity_on_hand) - parseInt(transactionProduct.quantity)
+				inventoryDB.update({ _id: product._id }, product, {}, callback)
 			}
 
 		});

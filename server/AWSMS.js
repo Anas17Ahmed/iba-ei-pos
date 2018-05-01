@@ -3,7 +3,7 @@
 /**
  * @author anas17ahmed.
  *
- * @file Module for working with AWS SQS Queue.
+ * @file Module for working with AWS SQS and SNS.
  */
 var Promise = require( 'bluebird' );
 
@@ -14,17 +14,24 @@ var AWS = require( 'aws-sdk' );
  *
  * @constructor
  *
- * @param {Object} credentials             credentials for SQS.
+ * @param {Object} credentials             credentials for SQS and SNS.
  *
- * @class [AWSQueue Object]
+ * @class [AWSMS Object]
  */
-var AWSQueueConstructor = function AWSQueue( credentials ) {
+var AWSMSConstructor = function AWSMS() {
   this.sqs = new Promise.promisifyAll(new AWS.SQS({
-    accessKeyId: credentials.accessKeyId,
-    secretAccessKey: credentials.secretAccessKey,
-    endpoint: AWSQueueConstructor.SQS_ENDPOINT,
-    region: credentials.region
+    accessKeyId: AWSMSConstructor.ACCESS_KEY_ID,
+    secretAccessKey: AWSMSConstructor.ACCESS_KEY_SECRET,
+    endpoint: AWSMSConstructor.SQS_ENDPOINT,
+    region: AWSMSConstructor.REGION
   }));
+
+  this.sns = new AWS.SNS({
+    accessKeyId: AWSMSConstructor.ACCESS_KEY_ID,
+    secretAccessKey: AWSMSConstructor.ACCESS_KEY_SECRET,
+    endpoint: AWSMSConstructor.SNS_ENDPOINT,
+    region: AWSMSConstructor.REGION
+  });
 };
 
 /**
@@ -32,7 +39,7 @@ var AWSQueueConstructor = function AWSQueue( credentials ) {
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.listQueues = function ListQueues() {
+AWSMSConstructor.prototype.listQueues = function ListQueues() {
   return this.sqs.listQueuesAsync();
 };
 
@@ -48,7 +55,7 @@ AWSQueueConstructor.prototype.listQueues = function ListQueues() {
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.createQueue = function CreateQueue( name, topicArn, receiveWaitTime,
+AWSMSConstructor.prototype.createQueue = function CreateQueue( name, topicArn, receiveWaitTime,
   delaySeconds, visibilityTimeout, messageRetentionPeriod, fifoQueue ) {
 
   if ( delaySeconds != null && typeof delaySeconds === 'number' ) delaySeconds = delaySeconds.toString();
@@ -71,7 +78,7 @@ AWSQueueConstructor.prototype.createQueue = function CreateQueue( name, topicArn
   if ( visibilityTimeout != null ) params.Attributes.VisibilityTimeout = visibilityTimeout;
   if ( topicArn ) params.Attributes.Policy = JSON.stringify( this.queuePolicyForTopic( topicArn, null, name ) );
   if ( fifoQueue === true ) {
-    params.QueueName = name + AWSQueueConstructor.FIFO_SUFFIX;
+    params.QueueName = name + AWSMSConstructor.FIFO_SUFFIX;
     params.Attributes.FifoQueue = fifoQueue.toString();
   }
 
@@ -86,7 +93,7 @@ AWSQueueConstructor.prototype.createQueue = function CreateQueue( name, topicArn
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.deleteQueue = function DeleteQueue( queueUrl ) {
+AWSMSConstructor.prototype.deleteQueue = function DeleteQueue( queueUrl ) {
   return this.sqs.deleteQueueAsync({
     QueueUrl: queueUrl
   });
@@ -103,7 +110,7 @@ AWSQueueConstructor.prototype.deleteQueue = function DeleteQueue( queueUrl ) {
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.sendMessage = function SendMessage(
+AWSMSConstructor.prototype.sendMessage = function SendMessage(
   queueUrl, messages, delaySeconds, messageGroupId
 ) {
   let params = { QueueUrl: queueUrl };
@@ -138,7 +145,7 @@ AWSQueueConstructor.prototype.sendMessage = function SendMessage(
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.receiveMessage = function ReceiveMessage(
+AWSMSConstructor.prototype.receiveMessage = function ReceiveMessage(
   queueUrl, waitTime, maxNumberOfMessages, attribute
 ) {
   attribute = ( attribute != null ? attribute : 'All' );
@@ -147,16 +154,21 @@ AWSQueueConstructor.prototype.receiveMessage = function ReceiveMessage(
     AttributeNames: [ attribute ]
   };
   if ( waitTime != null ) params.WaitTimeSeconds = waitTime;
-  if ( maxNumberOfMessages != null ) params.MaxNumberOfMessages = 3;
+  if ( maxNumberOfMessages != null ) params.MaxNumberOfMessages = maxNumberOfMessages;
 
   let messages = [];
   return this.sqs.receiveMessageAsync( params ).then( function AfterMessageReceived( data ) {
     if ( data.Messages == null ) return messages;
     else {
       for (var i = 0; i < data.Messages.length; i++) {
-        messages[ i ] = JSON.parse( data.Messages[ i ].Body );
+        try {
+          data.Messages[ i ].Body = JSON.parse( data.Messages[ i ].Body );
+        } catch ( err ) {
+          data.Messages[ i ].Body = data.Messages[ i ].Body;
+        }
+        data.Messages[i].Attributes = data.Messages[i].Attributes;
       }
-      return messages;
+      return data.Messages;
     }
   }).catch( function ReceiveMessageError( error ) {
     return messages;
@@ -172,7 +184,7 @@ AWSQueueConstructor.prototype.receiveMessage = function ReceiveMessage(
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.deleteMessage = function DeleteMessage( queueUrl, receiptHandle ) {
+AWSMSConstructor.prototype.deleteMessage = function DeleteMessage( queueUrl, receiptHandle ) {
 
   if ( receiptHandle instanceof Array ) {
     let params = {
@@ -201,7 +213,7 @@ AWSQueueConstructor.prototype.deleteMessage = function DeleteMessage( queueUrl, 
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.purgeQueue = function PurgeQueue( queueUrl ) {
+AWSMSConstructor.prototype.purgeQueue = function PurgeQueue( queueUrl ) {
   return this.sqs.purgeQueue({
     QueueUrl: queueUrl
   }).promise();
@@ -215,7 +227,7 @@ AWSQueueConstructor.prototype.purgeQueue = function PurgeQueue( queueUrl ) {
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.setTopic = function SetTopic( queueUrl, topicArn ) {
+AWSMSConstructor.prototype.setTopic = function SetTopic( queueUrl, topicArn ) {
   let self = this;
   return this.getQueueAttributes( queueUrl ).then( function QueueAttributes( data ) {
     return self.sqs.setQueueAttributesAsync({
@@ -236,7 +248,7 @@ AWSQueueConstructor.prototype.setTopic = function SetTopic( queueUrl, topicArn )
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.setDelay = function SetDelay( queueUrl, delaySeconds ) {
+AWSMSConstructor.prototype.setDelay = function SetDelay( queueUrl, delaySeconds ) {
   if ( delaySeconds != null && typeof delaySeconds === 'number' ) delaySeconds = delaySeconds.toString();
   return this.sqs.setQueueAttributesAsync({
     QueueUrl: queueUrl,
@@ -256,7 +268,7 @@ AWSQueueConstructor.prototype.setDelay = function SetDelay( queueUrl, delaySecon
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.setMessageRetentionPeriod = function MessageRetentionPeriod(
+AWSMSConstructor.prototype.setMessageRetentionPeriod = function MessageRetentionPeriod(
   queueUrl, messageRetentionPeriod
 ) {
 
@@ -279,7 +291,7 @@ AWSQueueConstructor.prototype.setMessageRetentionPeriod = function MessageRetent
  *
  * @returns {Promise} p
  */
-AWSQueueConstructor.prototype.getQueueAttributes = function GetQueueAttributes( queueUrl, attribute ) {
+AWSMSConstructor.prototype.getQueueAttributes = function GetQueueAttributes( queueUrl, attribute ) {
   attribute = ( attribute != null ? attribute : 'All' );
   return this.sqs.getQueueAttributesAsync({
     QueueUrl: queueUrl,
@@ -296,7 +308,7 @@ AWSQueueConstructor.prototype.getQueueAttributes = function GetQueueAttributes( 
  *
  * @returns {string} json
  */
-AWSQueueConstructor.prototype.queuePolicyForTopic = function QueuePolicyForTopic(
+AWSMSConstructor.prototype.queuePolicyForTopic = function QueuePolicyForTopic(
   topicArn, queueArn, queueName
 ) {
 
@@ -322,8 +334,12 @@ AWSQueueConstructor.prototype.queuePolicyForTopic = function QueuePolicyForTopic
 };
 
 // Constants
-AWSQueueConstructor.SQS_ENDPOINT = 'https://sqs.us-east-1.amazonaws.com';
-AWSQueueConstructor.FIFO_SUFFIX = '.fifo';
+AWSMSConstructor.SQS_ENDPOINT = 'https://sqs.us-east-1.amazonaws.com';
+AWSMSConstructor.SNS_ENDPOINT = 'https://sns.us-east-1.amazonaws.com';
+AWSMSConstructor.FIFO_SUFFIX = '.fifo';
+AWSMSConstructor.ACCESS_KEY_ID = 'AKIAIX23ZECDU6JFXWZQ';
+AWSMSConstructor.ACCESS_KEY_SECRET = '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';
+AWSMSConstructor.REGION = 'us-east-1';
 
 // Make the module available to all
-module.exports = AWSQueueConstructor;
+module.exports = AWSMSConstructor;

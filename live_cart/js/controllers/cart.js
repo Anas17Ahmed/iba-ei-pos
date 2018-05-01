@@ -2,9 +2,13 @@ app.controller('liveCartController', function ($scope, Transactions, Settings) {
   
   $scope.recentTransactions = [];
 
-  var getTransactionsData = function () {
+  var getTransactionsData = function ( cart ) {
+
     Transactions.get(10).then(function (transactions) {
-      $scope.recentTransactions = _.sortBy(transactions, 'date').reverse();
+      var mergedList = _.map(transactions, function(item) {
+        return _.extend(item, _.findWhere(cart, { _id: item._id }));
+      });
+      $scope.recentTransactions = _.sortBy(mergedList, 'date').reverse();
     });
 
     Transactions.getTotalForDay().then(function (dayTotal) {
