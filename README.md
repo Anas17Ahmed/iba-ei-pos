@@ -65,7 +65,7 @@ This will install all dependencies required to run the node app.
 - [ ] clean & beautiful interface
 
 ## Integration Patterns Covered
-### Messaging Systems
+### Messaging Systems ( AWS SQS & SNS )
 - Message Channel ( Inventory, Transaction )
 - Message Pipes
 - Message Routing ( Content Based )
