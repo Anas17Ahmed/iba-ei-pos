@@ -64,7 +64,7 @@ This will install all dependencies required to run the node app.
 - [ ] account for multiple cash registers
 - [ ] clean & beautiful interface
 
-## Integration Features Covered
+## Integration Patterns Covered
 ### Messaging Systems
 - Message Channel ( Inventory, Transaction )
 - Message Pipes
@@ -84,15 +84,24 @@ Connect the Inventory and order applications using a Inventory Channel, where in
 ### Message Pipes
 Subscribe different queues on the inventory topic, add message pipes on each subscription on this topic. If the message published to a topic that contain inventory header, then only inventory channel receives this message.
 
+### Message Endpoint
+Create inventory endpoint to send/receive inventories
+Create transactions endpoint to send/receive transactions
+
 ### Message Routing ( Content Based )
+If inventory message sent to common messaging queue then messaging system check the header of the message then route this message to right endpoint. 
 
 ### Point-to-Point Channel
+Send the message on a Transaction Channel, which ensures that only transaction system will receive a particular message.
 
 ### Publish-Subscribe Channel
+If inventory manager create new inventory and publish it to the topic then all the order management system will notify about that inventory that has been added.
 
 ### Invalid Message Channel
+Inventory message sends to transaction system then it will be moved to invalid message queue
 
 ### Dead Letter Channel
+If the order is checkout from order management system, but the transaction is down, then transaction message goes to dead letter message queue. 
 
 # Screenshots
 Manage Inventory
