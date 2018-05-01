@@ -64,13 +64,12 @@ This will install all dependencies required to run the node app.
 - [ ] account for multiple cash registers
 - [ ] clean & beautiful interface
 
-
 ## Integration Features Covered
 ### Messaging Systems
 - Message Channel ( Inventory, Transaction )
-- Message Pipes ( AWS Topic )
-- Content Based Routing (Common Messaging queue)
-- Message Endpoint (Topic, Inventory, Transaction and common messaging queue)
+- Message Pipes
+- Message Routing ( Content Based )
+- Message Endpoint ( Topic, Inventory, Transaction and common messaging queue )
 
 ### Messaging Channels
 - Point-to-Point Channel
@@ -78,8 +77,24 @@ This will install all dependencies required to run the node app.
 - Invalid Message Channel
 - Dead Letter Channel
 
-# Screenshots
+## Scanarios
+### Message Channel
+Connect the Inventory and order applications using a Inventory Channel, where inventory application writes new inventory to the channel and the order systems reads that inventory information from the inventory channel.
 
+### Message Pipes
+Subscribe different queues on the inventory topic, add message pipes on each subscription on this topic. If the message published to a topic that contain inventory header, then only inventory channel receives this message.
+
+### Message Routing ( Content Based )
+
+### Point-to-Point Channel
+
+### Publish-Subscribe Channel
+
+### Invalid Message Channel
+
+### Dead Letter Channel
+
+# Screenshots
 Manage Inventory
 ![Inventory page screenshot](https://raw.githubusercontent.com/afaqurk/screenshots/master/hunts-point-pos/inventory.png)
 
